@@ -5,78 +5,117 @@ This guide explains how to install **Windows 11 ARM** on an Apple Silicon Mac us
 ---
 
 ## Table of Contents
-1. [Requirements](#requirements)  
-2. [Install UTM](#1-install-utm)  
-3. [Create a New Virtual Machine](#2-create-a-new-virtual-machine)  
-4. [Download Windows 11 ARM ISO](#3-get-windows-11-arm-image)  
-5. [Configure VM](#4-configure-the-vm)  
-6. [Install Windows](#5-install-windows)  
-7. [First Boot Troubleshooting](#6-first-boot--troubleshooting)  
-8. [Guest Tools](#7-guest-tools)  
-9. [Activation](#8-activation)
-10. [Networking Issues](#9-networking-issues)
-11. [Next Steps: SAP GUI](#10-next-steps-sap-gui)
+1. [Requirements](#requirements)
+2. [Install UTM](#1-install-utm)
+3. [Create the VM](#2-create-the-vm)
+4. [Get Windows 11 ARM](#3-get-windows-11-arm)
+5. [VM Configuration](#4-vm-configuration)
+6. [Install Windows](#5-install-windows)
+7. [First Boot & Troubleshooting](#6-first-boot--troubleshooting)
+8. [Guest Tools](#7-guest-tools)
+9. [Networking Issues](#8-networking-issues)
+10. [Next Steps: SAP GUI](#9-next-steps-sap-gui)
 
 ---
 
 ## Requirements
-- Apple Silicon Mac (M1/M2/M3)  
-- At least **8 GB RAM** (16 GB recommended)  
-- At least **64 GB disk space**  
-- UTM app (free, open-source)  
-- Stable internet connection (for Windows ISO + SAP GUI downloads)  
+
+- Apple Silicon Mac (M1 or later)
+- UTM app
+- Windows 11 ARM64 ISO
+- At least 64 GB free disk space
+- Internet connection
+
+Recommended VM RAM:
+
+| Mac RAM | VM RAM |
+|---|---:|
+| 8 GB | 4 GB |
+| 16 GB | 6–8 GB |
+| 24 GB+ | 8 GB+ |
 
 ---
 
 ## 1. Install UTM
-- Download: [https://mac.getutm.app](https://mac.getutm.app)  
-- Install: open `.dmg`, drag **UTM.app** into Applications.  
-- Launch UTM.  
+- Download: https://mac.getutm.app
+- Install and launch UTM.  
 
+## 2. Create the VM
 
-## 2. Create a New Virtual Machine
-1. Open UTM → click **Create a New Virtual Machine**.  
-2. Choose **Virtualize → Windows**.  
-   ⚠️ Do **NOT** choose *Emulate* (too slow).  
+In UTM, select:
 
+```text
+Create a New Virtual Machine
+→ Virtualize
+→ Windows
+```
 
-## 3. Get Windows 11 ARM Image
-- On the ISO setup screen → click **Get Latest Windows 11 for ARM**.  
-- UTM will redirect you to **CrystalFetch**, a helper tool that connects to Microsoft’s official servers.  
-- Choose your preferred language.  
-- Confirm the download. CrystalFetch will generate and fetch the official Windows 11 ARM ISO.  
-- Once the download is finished, return to UTM and select the ISO file to continue.   
-
-
-## 4. Configure the VM
 Recommended settings:  
 - **CPU**: 4 cores  
-- **Memory**: 8192 MB (8 GB, min 4 GB)  
-- **Disk**: 64–100 GB (dynamic)  
-- Check *Install drivers and SPICE tools* (for display/mouse integration) 
+- **Memory**: 4-8 GB 
+- **Disk**: 64–80 GB (dynamic)  
+- Enable **Install drivers and SPICE tools** if available
 
+
+## 3. Get Windows 11 ARM
+
+Download a **Windows 11 ARM64** ISO.
+
+You can either:
+
+- download it directly from Microsoft, or
+- use **CrystalFetch** through UTM by selecting **Get Latest Windows 11 for ARM**.
+
+For CrystalFetch on an Apple Silicon Mac, select:
+
+```text
+Windows 11
+Build: Latest
+Architecture: Apple Silicon
+Language: your preferred language
+Edition: Windows 11
+```
+Once the download is finished, return to UTM and select the ISO file to continue.  
+
+
+## 4. VM Configuration
+
+Select a **Shared Folder** if you want to transfer files between macOS and Windows.
+
+For networking, select:
+
+```text
+Shared Network
+```
+Do not switch to Bridged networking unless Shared Network causes a specific problem.
 
 ## 5. Install Windows
-1. Start the VM → installer will boot.  
-2. Product Key: select **“I don’t have a product key”** (or enter if you have one).  
-3. Edition: select **Windows 11 Pro** (best features/compatibility).  
-4. Disk: choose **Drive 0 Unallocated Space → Next**.  
-5. Windows copies files, restarts automatically → proceed with region, keyboard, account.  
+- Start the VM → press any key to boot → select your language.
+- Product Key: select **I don't have a product key** (or enter one if you have it).
+- Edition: select **Windows 11 Pro**.
+- Disk: choose **Drive 0 Unallocated Space → Next**.
+- Continue with the normal installation.
+
+
+### Important: Remove the Windows ISO After Installation
+
+After Windows finishes installing for the first time, the VM will restart. You may get stuck at **Start boot option** if the Windows installation ISO is still mounted.
+
+- Shut down the VM.
+- Go to the VM overview and find the **CD/DVD** entries.
+- Remove/eject only the **Windows installation ISO**.
+- Keep `utm-guest-tools-latest.iso`.
+- Start the VM again and continue the Windows setup.
 
 
 ## 6. First Boot & Troubleshooting
 
-### Case 1: Stuck at “Start boot option” / `startup.nsh`
+### Case 1: Message “It looks like you started an upgrade…” / `startup.nsh`
 - Reason: VM boots from ISO instead of installed disk.  
 - Fix: Shut down → Go to Settings → **CD/DVD → remove Windows ISO** (keep only `utm-guest-tools.iso`) → restart.  
 
 
-### Case 2: Message “It looks like you started an upgrade…”
-- Reason: VM still booted from ISO.  
-- Fix: Same as case 1. 
-
-
-### Case 3: Windows desktop loads, activation fails  
+### Case 2: Windows desktop loads, activation fails  
 - Message: *“Cannot connect to my organisation's activation server.”*  
 - Fix: Ignore activation. Windows works fine except:  
   - Watermark “Activate Windows”  
@@ -86,85 +125,62 @@ Recommended settings:
 
 ## 7. Guest Tools
 - If *Install drivers and SPICE tools* was checked, features like auto-resize and mouse integration should already work.
-- If not → open `utm-guest-tools.iso` inside Windows and install manually.  
+- If not, Inside Windows:
+
+```text
+File Explorer
+→ CD/DVD Drive
+→ run the Guest Tools installer
+```
+
+Restart Windows after installation.→ open `utm-guest-tools.iso` inside Windows and install manually.  
 
 
-## 8. Activation
-- Optional. Not required for SAP.  
-- If provided by university:  
-  `Settings → System → Activation → Change product key`  
 
+## 8. Networking Issues
 
-## 9. Networking Issues
+If the network does not work:
 
-Some users may encounter **“No Internet”** inside Windows after installation.
-Here are the known solutions (from easiest → advanced):
+1. Install or reinstall Windows Guest Tools
+2. Check that **Network Mode = Shared Network**
+3. Check **Device Manager → Network adapters**
+4. Confirm that the VirtIO network adapter is installed
 
-### Case 1: No Network During Windows Setup
+### Bridged Network
 
-* At the **language selection screen** → press **Shift + F10** to open Command Prompt.
-* Enter one of the following (depends on Windows version):
-
-  * `OOBE\BYPASSNRO` → VM will reboot, then you will see *“I don’t have internet”*.
-  * or `start ms-cxh:localonly` → skips internet requirement, lets you create a **local account**.
-* After installation, install **SPICE Guest Tools** to enable drivers (including network).
-
-### Case 2: No Internet After Windows Desktop Loads
-
-#### Solution 1: Install SPICE Guest Tools
-
-* Make sure **SPICE Guest Tools (utm-guest-tools.iso)** is installed.
-* Provides the **Red Hat VirtIO Ethernet Adapter** driver.
-* Check in **Device Manager → Network Adapters**:
-
-  * ✅ If you see *Red Hat VirtIO Ethernet Adapter* → driver is installed.
-  * ⚠️ If you only see *Unknown Device* (yellow mark) → reinstall Guest Tools manually.
-
-#### Solution 2: Bridged Network Mode (Most Reliable in My Case)
+If Shared Network still does not work, try Bridged networking.
 
 * On your Mac Terminal → run `ifconfig` to find the correct interface (normally `en0` = Wi-Fi).
-* In UTM:
 
-  1. Shut down VM.
-  2. Go to **UTM → VM → Edit → Network**.
-  3. Change **Network Mode** → `Bridged (Advanced)`.
-  4. Under *Bridged Interface*, select the interface you found (e.g. `en0`).
-  5. Keep **Emulated Network Card = virtio-net-pci**.
-* Start VM → open **cmd** → run `ipconfig`.
+* Then in UTM:
+1. Shut down VM.
+2. Go to **UTM → VM → Edit → Network**.
+3. Change **Network Mode** → `Bridged (Advanced)`.
+4. Under *Bridged Interface*, select the interface you found (e.g. `en0`).
+5. Keep **Emulated Network Card = virtio-net-pci**.
 
-  * If your VM gets an IP in the same subnet as your Mac (e.g. Mac `192.168.0.12`, VM `192.168.0.20`), networking works (Tip: Both your Mac and VM should share the same subnet — usually the first three parts of the IP, e.g. 192.168.0.xxx.if you don't know how to calculate IP address and subnet just ask master ChatGPT).
+* Start the VM → open **Command Prompt** → run `ipconfig`
 
-#### Solution 3: Change Emulated Network Card (This May Fail)
+If the VM receives an IP address in the same subnet as your Mac, the bridged network is working.
 
-* Shut down VM → UTM **Settings → Network**.
-* Change **Emulated Network Card**: `virtio-net-pci` → `Intel e1000`.
-* Windows 11 has built-in Intel e1000 drivers, so it should connect immediately.
-* ⚠️ In my case this causes *“Your PC did not start correctly”* → use carefully!
 
 #### Testing Network Inside VM
 
 * Open **Command Prompt** in Windows and test:
 
-  * Ping Internet:
+1. Open Microsoft Edge and visit a website.
 
-    ```bash
-    ping 8.8.8.8
-    ```
+2. Test DNS:
+```
+nslookup www.microsoft.com
+```
 
-    If replies succeed → internet works.
-  * Test DNS:
+4. Test HTTP:
+```
+curl https://www.microsoft.com
+```
 
-    ```bash
-    nslookup www.google.com 8.8.8.8
-    ```
-
-    If DNS fails but ping works → change DNS:
-    `Settings → Network & Internet → Ethernet → Edit DNS` → set manual Preferred DNS: 8.8.8.8 and Alternate DNS: 1.1.1.1.
-
-    If both ping and DNS succeed, your VM networking is fully functional.
-
-
-## 10. Next Steps: SAP GUI
+## 9. Next Steps: SAP GUI
 
 1. Inside Windows VM → install your university VPN client.
 2. Connect VPN → ensures access to campus SAP servers.
@@ -173,4 +189,4 @@ Here are the known solutions (from easiest → advanced):
 
 ---
 
-*Maintained by students of Augsburg University of Applied Sciences – 2025*  
+*Maintained by students of Augsburg University of Applied Sciences – updated 2026*
